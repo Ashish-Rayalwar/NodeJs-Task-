@@ -1,6 +1,6 @@
-const { decryptPhoneNumber, encryptPhoneNumber } = require("../helper/helper");
-const { User } = require("../models");
-const { Op } = require("sequelize");
+const { decryptPhoneNumber, encryptPhoneNumber } = require('../helper/helper');
+const { User } = require('../models');
+const { Op } = require('sequelize');
 const addContacts = async (req, res) => {
   try {
     let { userId, Contacts } = req.body;
@@ -8,7 +8,7 @@ const addContacts = async (req, res) => {
     if (!userId || !Contacts) {
       return res
         .status(400)
-        .json({ status: false, message: "Invalid Parameters." });
+        .json({ status: false, message: 'Invalid Parameters.' });
     }
 
     for (const contact of Contacts) {
@@ -48,7 +48,7 @@ const addContacts = async (req, res) => {
 
     return res
       .status(201)
-      .json({ success: true, message: "data saved successfully" });
+      .json({ success: true, message: 'data saved successfully' });
   } catch (error) {
     return res.status(500).json({ status: false, message: error.message });
   }
@@ -80,16 +80,16 @@ const searchContacts = async (req, res) => {
     if (!searchText && !userId) {
       return res
         .status(400)
-        .json({ status: false, message: "Invalid Parameters" });
+        .json({ status: false, message: 'Invalid Parameters' });
     }
 
     const pageSize = parseInt(PageSize) || 10;
     const currentPage = parseInt(page) || 1;
 
     let filter = {
-      number: {
-        [Op.not]: null,
-      },
+      // number: {
+      //   [Op.not]: null,
+      // },
     };
 
     if (searchText) {
@@ -104,19 +104,43 @@ const searchContacts = async (req, res) => {
       where: filter,
       limit: pageSize,
       offset: (currentPage - 1) * pageSize,
-      attributes: ["name", "number"],
+      attributes: ['name', 'number'],
     });
-
+    let responseData = [];
+    // console.log(contacts, 'contacts');
     for (let i = 0; i < contacts.rows.length; i++) {
       let x = contacts.rows[i];
-      let number = await decryptPhoneNumber(x.number);
-      x.number = number;
+      console.log(x.number, 'number');
+      if (x.number == null) {
+        console.log('nulll');
+        let name = x.name;
+        let users = await User.findAll({
+          where: {
+            name: name,
+            commonUser: { [Op.like]: `%${userId}%` },
+          },
+        });
+
+        let user = {
+          username: users[0].name,
+          userphone: await decryptPhoneNumber(users[0].number),
+        };
+
+        responseData.push(user);
+      } else {
+        let user = {
+          username: x.name,
+          userphone: await decryptPhoneNumber(x.number),
+        };
+
+        responseData.push(user);
+      }
     }
 
     const response = {
       currentPage,
       totalCount: contacts.count,
-      rows: contacts.rows,
+      rows: responseData,
     };
 
     return res.json(response);

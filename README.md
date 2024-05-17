@@ -64,7 +64,7 @@
 ```
 
 
-### GET user's contact - http://localhost:5000/api/search?userId=2&page=1&PageSize=2
+### GET user's contact - http://localhost:5000/api/search?userId=1&page=1&PageSize=2
 
 - Get contacts by userId (Pagination should work, Name search should work)
 - **Response format**
@@ -72,13 +72,17 @@
 ```yaml
 
 {
-    "currentPage": 1,
-    "totalCount": 1,
-    "rows": [
-        {
-            "name": "darshan",
-            "number": "6657991246"
-        }
-    ]
+  "currentPage": 1,
+  "totalCount": 3,
+  "rows": [
+    {
+      "username": "rahil",
+      "userphone": "1234567890"
+    },
+    {
+      "username": "sahil",
+      "userphone": "2234567777"
+    }
+  ]
 }
 ```
